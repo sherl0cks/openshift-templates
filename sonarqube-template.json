@@ -368,7 +368,7 @@
         "runPolicy": "Serial",
         "source": {
           "git": {
-            "uri": "https://github.com/InfoSec812/openshift-sonarqube.git",
+            "uri": "https://github.com/rht-labs/openshift-sonarqube.git",
             "ref": "${SONAR_CONTAINER_BRANCH}"
           },
           "type": "Git"
