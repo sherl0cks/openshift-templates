@@ -2,10 +2,10 @@
     "kind": "Template",
     "apiVersion": "v1",
     "metadata": {
-        "name": "${NAME}",
+        "name": "${NAME}-build-pod",
         "annotations": {
-            "openshift.io/display-name": "Maven Build Pod",
-            "description": "Maven build pod template pre-configured to use a nexus in the same project/namespace"
+            "openshift.io/display-name": "Build Pod",
+            "description": "Template to create a Jenkins Build Pod build on RHEL"
         }
     },
     "objects": [
@@ -14,16 +14,16 @@
             "kind": "BuildConfig",
             "metadata": {
                 "labels": {
-                    "build": "${NAME}"
+                    "build": "${NAME}-build-pod"
                 },
-                "name": "${NAME}"
+                "name": "${NAME}-build-pod"
             },
             "spec": {
                 "nodeSelector": null,
                 "output": {
                     "to": {
                         "kind": "ImageStreamTag",
-                        "name": "${NAME}:latest"
+                        "name": "${NAME}-build-pod:latest"
                     }
                 },
                 "postCommit": {},
@@ -41,7 +41,7 @@
                     "dockerStrategy": {
                         "from": {
                             "kind": "ImageStreamTag",
-                            "name": "jenkins-slave-maven-centos7:latest"
+                            "name": "${BUILDER_IMAGE_NAME}:latest"
                         }
                     },
                     "type": "Docker"
@@ -67,10 +67,10 @@
             "kind": "ImageStream",
             "metadata": {
                 "labels": {
-                    "build": "${NAME}",
+                    "build": "${NAME}-build-pod",
                     "role": "jenkins-slave"
                 },
-                "name": "${NAME}"
+                "name": "${NAME}-build-pod"
             }
         },
         {
@@ -78,16 +78,16 @@
             "kind": "ImageStream",
             "metadata": {
                 "labels": {
-                    "build": "${NAME}"
+                    "build": "${NAME}-build-pod"
                 },
-                "name": "jenkins-slave-maven-centos7"
+                "name": "${BUILDER_IMAGE_NAME}"
             },
             "spec": {
                 "tags": [
                     {
                         "from": {
                             "kind": "DockerImage",
-                            "name": "openshift/jenkins-slave-maven-centos7:latest"
+                            "name": "${BUILDER_IMAGE_NAMESPACE}/${BUILDER_IMAGE_NAME}"
                         },
                         "generation": 2,
                         "importPolicy": {},
@@ -104,9 +104,9 @@
         {
             "name": "NAME",
             "displayName": "Name",
-            "description": "The name assigned to all objects and the resulting imagestream.",
+            "description": "The name assigned to all objects and the resulting imagestream. Will automatically be postfixed with '-build-pod'",
             "required": true,
-            "value": "mvn-build-pod"
+            "value": "npm"
         },
         {
             "name": "GITHUB_WEBHOOK_SECRET",
@@ -131,10 +131,25 @@
         {
             "name": "SOURCE_CONTEXT_DIR",
             "displayName": "Git Context Directory",
-            "description": "Set this to the directory where the build information is (e.g. Dockerfile) if not using the default"
+            "description": "Set this to the directory where the build information is (e.g. Dockerfile) if not using the default",
+            "value": "ci-cd-starter/builds/npm-build-pod"
+        },
+        {
+            "name": "BUILDER_IMAGE_NAME",
+            "displayName": "Builder Image Name",
+            "description": "Container Image upon which the Jenkins Slave image will be built",
+            "value": "jenkins-slave-base-rhel7",
+            "required": true
+        },
+        {
+            "name": "BUILDER_IMAGE_NAMESPACE",
+            "displayName": "Builder Image Namespace",
+            "description": "The namespace from which to pull the container image upon which the Jenkins Slave image will be built. Include the registry prefix if not docker hub (e.g. in the case of RHEL images)",
+            "value": "registry.access.redhat.com/openshift3",
+            "required": true
         }
     ],
     "labels": {
-        "template": "mvn-build-pod-template"
+        "template": "build-pod-template"
     }
 }
